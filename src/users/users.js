@@ -1,16 +1,43 @@
 const ObjectId = require('mongodb').ObjectId;
 
+const { Connection } = require('../db/Connection');
+
 const collectionName = 'users';
 const options = {
-  // sort returned documents in ascending order by title (A->Z)
   sort: { name: 1 },
-  // Include only the `title` and `imdb` fields in each returned document
   projection: { _id: 1, name: 1, phone: 1 },
 };
 
-const getUser = async (clientMongoDb, id) => {
+const getAllUsers = async () => {
   try {
-    const database = clientMongoDb.db(process.env.MONGODB_NAME);
+    const database = Connection.database;
+    const collection = database.collection(collectionName);
+
+    const query = {};
+    const documents = await collection.find(query, options).toArray();
+
+    return documents;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const createUser = async (data) => {
+  try {
+    const database = Connection.database;
+    const collection = database.collection(collectionName);
+
+    const result = await collection.insertOne(data);
+
+    return { ...data, _id: result.insertedId };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const getUser = async (id) => {
+  try {
+    const database = Connection.database;
     const collection = database.collection(collectionName);
 
     const query = { _id: ObjectId(id) };
@@ -23,37 +50,9 @@ const getUser = async (clientMongoDb, id) => {
   }
 };
 
-const getAllUsers = async (clientMongoDb) => {
+const updateUser = async (id, data) => {
   try {
-    const database = clientMongoDb.db(process.env.MONGODB_NAME);
-    const collection = database.collection(collectionName);
-
-    const query = {};
-
-    const documents = await collection.find(query, options).toArray();
-
-    return documents;
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-const createUser = async (clientMongoDb, data) => {
-  try {
-    const database = clientMongoDb.db(process.env.MONGODB_NAME);
-    const collection = database.collection(collectionName);
-
-    const result = await collection.insertOne(data);
-
-    return { ...data, _id: result.insertedId };
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-const updateUser = async (clientMongoDb, id, data) => {
-  try {
-    const database = clientMongoDb.db(process.env.MONGODB_NAME);
+    const database = Connection.database;
     const collection = database.collection(collectionName);
 
     const query = { _id: ObjectId(id) };
@@ -73,9 +72,9 @@ const updateUser = async (clientMongoDb, id, data) => {
   }
 };
 
-const deleteUser = async (clientMongoDb, id) => {
+const deleteUser = async (id) => {
   try {
-    const database = clientMongoDb.db(process.env.MONGODB_NAME);
+    const database = Connection.database;
     const collection = database.collection(collectionName);
 
     const query = { _id: ObjectId(id) };
