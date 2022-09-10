@@ -1,6 +1,7 @@
 const express = require('express');
 const cool = require('cool-ascii-faces');
 const first = require('./src/first');
+const users = require('./src/users/users');
 
 const { MongoClient } = require('mongodb');
 
@@ -26,6 +27,21 @@ express()
     const result = await showTimes();
     res.send(result);
   })
+  .get('/users/:id', async (req, res) => {
+    const id = req.params.id;
+    const result = await getUser(id);
+    res.send(result);
+  })
+  .get('/users', async (req, res) => {
+    const result = await getUsers();
+    res.send(result);
+  })
+  .post('/users', async (req, res) => {
+    console.log(req)
+    console.log(req.body)
+    const result = await createUser(req.body);
+    res.send(result);
+  })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 showTimes = async () => {
@@ -37,4 +53,22 @@ showTimes = async () => {
     result += i + ' ';
   }
   return { result, mongoUri, resultFirst };
+};
+
+getUser = async (id) => {
+  const document = await users.getUser(clientMongoDb, id);
+
+  return document;
+};
+
+getUsers = async () => {
+  const documents = await users.getAllUsers(clientMongoDb);
+
+  return documents;
+};
+
+createUser = async (data) => {
+  const documents = await users.createUser(clientMongoDb,data);
+
+  return documents;
 };
