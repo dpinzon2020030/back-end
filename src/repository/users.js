@@ -5,7 +5,7 @@ const { Connection } = require('../db/Connection');
 const collectionName = 'users';
 const options = {
   sort: { name: 1 },
-  projection: { _id: 1, name: 1, phone: 1 },
+  projection: { _id: 1, name: 1, nickname: 1, dpi: 1, address: 1, phone: 1, email: 1, job: 1, monthlyIncome: 1,password:1 },
 };
 
 const getAllUsers = async () => {

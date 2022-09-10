@@ -1,4 +1,4 @@
-const users = require('../users/users');
+const users = require('../repository/users');
 
 getUsers = async (req, res, next) => {
   const documents = await users.getAllUsers();
