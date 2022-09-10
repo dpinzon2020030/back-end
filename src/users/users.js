@@ -40,7 +40,6 @@ const getAllUsers = async (clientMongoDb) => {
 
 const createUser = async (clientMongoDb, data) => {
   try {
-    console.log(data);
     const database = clientMongoDb.db(process.env.MONGODB_NAME);
     const collection = database.collection(collectionName);
 
@@ -52,4 +51,47 @@ const createUser = async (clientMongoDb, data) => {
   }
 };
 
-module.exports = { getUser, getAllUsers, createUser };
+const updateUser = async (clientMongoDb, id, data) => {
+  try {
+    const database = clientMongoDb.db(process.env.MONGODB_NAME);
+    const collection = database.collection(collectionName);
+
+    const query = { _id: ObjectId(id) };
+    const options = { upsert: true };
+
+    const updateDoc = {
+      $set: {
+        ...data,
+      },
+    };
+    const result = await collection.updateOne(query, updateDoc, options);
+    const message = `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`;
+
+    return { modifiedCount: result.modifiedCount, matchedCount: result.matchedCount, document: { id, data }, message };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const deleteUser = async (clientMongoDb, id) => {
+  try {
+    const database = clientMongoDb.db(process.env.MONGODB_NAME);
+    const collection = database.collection(collectionName);
+
+    const query = { _id: ObjectId(id) };
+    let message = '';
+
+    const result = await collection.deleteOne(query);
+    if (result.deletedCount === 1) {
+      message = 'Successfully deleted one document.';
+    } else {
+      message = 'No documents matched the query. Deleted 0 documents.';
+    }
+
+    return { message, id };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+module.exports = { getUser, getAllUsers, createUser, updateUser, deleteUser };

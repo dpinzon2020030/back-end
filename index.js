@@ -1,4 +1,8 @@
 const express = require('express');
+
+// const express = require('express')
+const bodyParser = require('body-parser');
+
 const cool = require('cool-ascii-faces');
 const first = require('./src/first');
 const users = require('./src/users/users');
@@ -18,6 +22,8 @@ const PORT = process.env.PORT || 5000;
 const mongoUri = process.env.MONGODB_URI;
 
 express()
+  .use(bodyParser.urlencoded({ extended: true }))
+  .use(bodyParser.json())
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
@@ -37,9 +43,17 @@ express()
     res.send(result);
   })
   .post('/users', async (req, res) => {
-    console.log(req)
-    console.log(req.body)
     const result = await createUser(req.body);
+    res.send(result);
+  })
+  .patch('/users/:id', async (req, res) => {
+    const id = req.params.id;
+    const result = await updateUser(id, req.body);
+    res.send(result);
+  })
+  .delete('/users/:id', async (req, res) => {
+    const id = req.params.id;
+    const result = await deleteUser(id);
     res.send(result);
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
@@ -68,7 +82,19 @@ getUsers = async () => {
 };
 
 createUser = async (data) => {
-  const documents = await users.createUser(clientMongoDb,data);
+  const documents = await users.createUser(clientMongoDb, data);
 
   return documents;
+};
+
+updateUser = async (id, data) => {
+  const documents = await users.updateUser(clientMongoDb, id, data);
+
+  return documents;
+};
+
+deleteUser = async (id) => {
+  const result = await users.deleteUser(clientMongoDb, id);
+
+  return result;
 };
