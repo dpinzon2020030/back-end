@@ -50,7 +50,7 @@ login = async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: {
-      userId: existingUser.id,
+      userId: existingUser._id,
       email: existingUser.email,
       token: token,
     },
@@ -114,7 +114,7 @@ signup = async (req, res, next) => {
 
   res.status(201).json({
     success: true,
-    data: { userId: newUser.id, email: newUser.email, token: token, _id: newUser._id },
+    data: { userId: newUser._id, email: newUser.email, token: token, _id: newUser._id },
   });
 };
 

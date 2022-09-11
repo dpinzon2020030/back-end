@@ -2,12 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
+const { Connection } = require('./src/db/Connection');
 const cool = require('cool-ascii-faces');
 const first = require('./src/first');
-const { Connection } = require('./src/db/Connection');
-const usersRoutes = require('./src/routes/users.routes');
-const authRoutes = require('./src/routes/auth.routes');
 const authValidateAccessResource = require('./src/middlewares/auth.middleware');
+const authRoutes = require('./src/routes/auth.routes');
+const usersRoutes = require('./src/routes/users.routes');
+const accountsRoutes = require('./src/routes/accounts.routes');
 
 const path = require('path');
 const PORT = process.env.PORT || 5000;
@@ -29,6 +30,7 @@ Connection.open().then(() => {
     })
     .use('/api', authRoutes)
     .use('/api', authValidateAccessResource, usersRoutes)
+    .use('/api', authValidateAccessResource, accountsRoutes)
     .listen(PORT, () => console.log(`Listening on ${PORT}`));
 });
 
