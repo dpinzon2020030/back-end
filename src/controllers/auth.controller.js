@@ -29,7 +29,9 @@ login = async (req, res, next) => {
 
   try {
     //Creating jwt token
-    token = jwt.sign({ userId: existingUser.id, email: existingUser.email }, 'secretkeyappearshere', { expiresIn: '1h' });
+    token = jwt.sign({ userId: existingUser.id, email: existingUser.email, userType: existingUser.userType }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES,
+    });
   } catch (err) {
     console.error(err);
 
@@ -56,13 +58,27 @@ login = async (req, res, next) => {
 };
 
 signup = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const userTypeLogged = req.decodedToken.userType;
+
+  if (userTypeLogged !== 'admin') {
+    const message = 'User is not admin.';
+    const error = new Error(message);
+
+    res.status(401).json({
+      success: false,
+      message,
+    });
+    return next(error);
+  }
+
+  const { name, email, password, userType } = req.body;
 
   let newUser;
   const data = {
     name,
     email,
     password,
+    userType,
   };
 
   try {
@@ -81,7 +97,9 @@ signup = async (req, res, next) => {
   let token;
 
   try {
-    token = jwt.sign({ userId: newUser._id, email: newUser.email }, 'secretkeyappearshere', { expiresIn: '1h' });
+    token = jwt.sign({ userId: newUser._id, email: newUser.email, userType: newUser.userType }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES,
+    });
   } catch (err) {
     const message = 'Something went wrong.';
     const error = new Error(message);
@@ -124,8 +142,10 @@ accessResource = async (req, res, next) => {
 
   //Decoding the token
   try {
-    const decodedToken = jwt.verify(token, 'secretkeyappearshere');
-    res.status(200).json({ success: true, data: { userId: decodedToken.userId, email: decodedToken.email } });
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    res
+      .status(200)
+      .json({ success: true, data: { userId: decodedToken.userId, email: decodedToken.email, userType: decodedToken.userType } });
   } catch (err) {
     console.error(err);
 

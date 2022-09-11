@@ -24,11 +24,12 @@ validateAccessResource = async (req, res, next) => {
 
   //Decoding the token
   try {
-    const decodedToken = jwt.verify(token, 'secretkeyappearshere');
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
     // return res.redirect('/login');
 
-    // res.status(200).json({ success: true, data: { userId: decodedToken.userId, email: decodedToken.email } });
+    // res.status(200).json({ success: true, data: { userId: decodedToken.userId, email: decodedToken.email,userType: decodedToken.userType } });
+    req.decodedToken = { userId: decodedToken.userId, email: decodedToken.email, userType: decodedToken.userType };
     next();
   } catch (err) {
     console.error(err);
