@@ -5,7 +5,7 @@ const { Connection } = require('../db/Connection');
 const collectionName = 'users';
 const options = {
   sort: { name: 1 },
-  projection: { _id: 1, name: 1, nickname: 1, dpi: 1, address: 1, phone: 1, email: 1, job: 1, monthlyIncome: 1,password:1 },
+  projection: { _id: 1, name: 1, nickname: 1, dpi: 1, address: 1, phone: 1, email: 1, job: 1, monthlyIncome: 1, password: 1, type: 1 },
 };
 
 const getAllUsers = async () => {
@@ -93,4 +93,19 @@ const deleteUser = async (id) => {
   }
 };
 
-module.exports = { getUser, getAllUsers, createUser, updateUser, deleteUser };
+const getUserByEmail = async (email) => {
+  try {
+    const database = Connection.database;
+    const collection = database.collection(collectionName);
+
+    const query = { email: email };
+
+    const document = await collection.findOne(query, options);
+
+    return document;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+module.exports = { getUser, getAllUsers, createUser, updateUser, deleteUser, getUserByEmail };

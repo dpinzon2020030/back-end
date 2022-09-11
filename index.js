@@ -6,6 +6,7 @@ const cool = require('cool-ascii-faces');
 const first = require('./src/first');
 const { Connection } = require('./src/db/Connection');
 const usersRoutes = require('./src/routes/users.routes');
+const authRoutes = require('./src/routes/auth.routes');
 
 const path = require('path');
 const PORT = process.env.PORT || 5000;
@@ -26,6 +27,7 @@ Connection.open().then(() => {
       res.send(result);
     })
     .use('/api', usersRoutes)
+    .use('/api', authRoutes)
     .listen(PORT, () => console.log(`Listening on ${PORT}`));
 });
 
