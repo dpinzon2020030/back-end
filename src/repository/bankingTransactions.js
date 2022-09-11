@@ -6,7 +6,19 @@ const collectionName = 'bankingTransactions';
 const collectionNameAccount = 'accounts';
 const options = {
   sort: { name: 1 },
-  projection: { _id: 1, description: 1, accountId: 1, userId: 1, ownerId: 1, date: 1, type: 1, credit: 1, debit: 1, createdAt: 1 },
+  projection: {
+    _id: 1,
+    description: 1,
+    accountId: 1,
+    userId: 1,
+    ownerId: 1,
+    date: 1,
+    type: 1,
+    credit: 1,
+    debit: 1,
+    createdAt: 1,
+    balance: 1,
+  },
 };
 const optionsAccount = {
   sort: { name: 1 },
@@ -49,14 +61,14 @@ const createTransaction = async (data) => {
     const collection = database.collection(collectionName);
 
     const { credit, debit } = data;
-
-    const newData = { ...data, createdAt: new Date() };
-
-    const result = await collection.insertOne(newData);
-
     totalCredit += credit;
     totalDebit += debit;
     const availableBalance = totalCredit - totalDebit;
+
+    const newData = { ...data, createdAt: new Date(), balance: availableBalance };
+
+    const result = await collection.insertOne(newData);
+
     const dataAccount = { availableBalance, totalCredit, totalDebit };
 
     await updateAccount(accountId, dataAccount);
