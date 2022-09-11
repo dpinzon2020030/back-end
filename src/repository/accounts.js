@@ -58,43 +58,6 @@ const createAccount = async (userId, data) => {
   }
 };
 
-const getAccount = async (id) => {
-  try {
-    const database = Connection.database;
-    const collection = database.collection(collectionName);
-
-    const query = { _id: ObjectId(id) };
-
-    const document = await collection.findOne(query, options);
-
-    return document;
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-const updateAccount = async (id, data) => {
-  try {
-    const database = Connection.database;
-    const collection = database.collection(collectionName);
-
-    const query = { _id: ObjectId(id) };
-    const options = { upsert: true };
-
-    const updateDoc = {
-      $set: {
-        ...data,
-      },
-    };
-    const result = await collection.updateOne(query, updateDoc, options);
-    const message = `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`;
-
-    return { modifiedCount: result.modifiedCount, matchedCount: result.matchedCount, document: { id, data }, message };
-  } catch (err) {
-    console.error(err);
-  }
-};
-
 const deleteAccount = async (id) => {
   try {
     const database = Connection.database;
@@ -188,10 +151,8 @@ const updateAccountCode = async (id, code) => {
 };
 
 module.exports = {
-  getAccount,
   getAllAccounts,
   createAccount,
-  updateAccount,
   deleteAccount,
   getAccountByCode,
   getAccountsByOwnerId,

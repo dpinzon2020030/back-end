@@ -1,4 +1,5 @@
 const accounts = require('../repository/accounts');
+const bankingTransactions = require('../repository/bankingTransactions');
 
 getAccounts = async (req, res, next) => {
   const documents = await accounts.getAllAccounts();
@@ -30,7 +31,7 @@ createAccount = async (req, res, next) => {
 
 getAccount = async (req, res, next) => {
   const id = req.params.id;
-  const document = await accounts.getAccount(id);
+  const document = await bankingTransactions.getAccount(id);
 
   res.json(document);
 };
@@ -38,7 +39,7 @@ getAccount = async (req, res, next) => {
 updateAccount = async (req, res, next) => {
   const id = req.params.id;
   const data = req.body;
-  const documents = await accounts.updateAccount(id, data);
+  const documents = await bankingTransactions.updateAccount(id, data);
 
   res.json(documents);
 };
