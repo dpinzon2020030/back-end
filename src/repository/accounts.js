@@ -1,11 +1,24 @@
 const ObjectId = require('mongodb').ObjectId;
 
 const { Connection } = require('../db/Connection');
+const bankingTransactions = require('./bankingTransactions');
 
 const collectionName = 'accounts';
 const options = {
   sort: { name: 1 },
-  projection: { _id: 1, name: 1, code: 1, dpi: 1, owner: 1, availableBalance: 1, ownerId: 1 },
+  projection: {
+    _id: 1,
+    name: 1,
+    code: 1,
+    dpi: 1,
+    owner: 1,
+    startingAmount: 1,
+    availableBalance: 1,
+    ownerId: 1,
+    totalCredit: 1,
+    totalDebit: 1,
+    createdBy: 1,
+  },
 };
 
 const getAllAccounts = async () => {
@@ -22,17 +35,22 @@ const getAllAccounts = async () => {
   }
 };
 
-const createAccount = async (data) => {
+const createAccount = async (userId, data) => {
   try {
     const ownerId = data.owner._id;
     const code = await getAccountCode();
 
-    const newDocument = { ...data, ownerId, code };
+    const startingAmount = data.startingAmount;
+
+    const newDocument = { ...data, ownerId, code, availableBalance: 0, totalCredit: 0, totalDebit: 0, createdBy: userId };
 
     const database = Connection.database;
     const collection = database.collection(collectionName);
 
     const result = await collection.insertOne(newDocument);
+    const accountId = ObjectId(result.insertedId).toString();
+
+    await bankingTransactions.startingAmount(userId, accountId, startingAmount);
 
     return { ...newDocument, _id: result.insertedId };
   } catch (err) {
@@ -115,7 +133,6 @@ const getAccountByCode = async (code) => {
 
 const getAccountsByOwnerId = async (ownerId) => {
   try {
-    console.log({ ownerId });
     const database = Connection.database;
     const collection = database.collection(collectionName);
 

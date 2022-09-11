@@ -29,7 +29,7 @@ login = async (req, res, next) => {
 
   try {
     //Creating jwt token
-    token = jwt.sign({ userId: existingUser.id, email: existingUser.email, userType: existingUser.userType }, process.env.JWT_SECRET, {
+    token = jwt.sign({ userId: existingUser._id, email: existingUser.email, userType: existingUser.userType }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES,
     });
   } catch (err) {

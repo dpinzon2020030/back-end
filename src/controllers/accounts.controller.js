@@ -1,7 +1,6 @@
 const accounts = require('../repository/accounts');
 
 getAccounts = async (req, res, next) => {
-  console.log(`req.decodedToken:`, req.decodedToken);
   const documents = await accounts.getAllAccounts();
 
   res.json(documents);
@@ -9,6 +8,8 @@ getAccounts = async (req, res, next) => {
 
 createAccount = async (req, res, next) => {
   const userTypeLogged = req.decodedToken.userType;
+  const userIdLogged = req.decodedToken.userId;
+  console.log(`req.decodedToken`,req.decodedToken)
 
   if (userTypeLogged !== 'admin') {
     const message = 'User is not admin.';
@@ -22,7 +23,7 @@ createAccount = async (req, res, next) => {
   }
 
   const data = req.body;
-  const documents = await accounts.createAccount(data);
+  const documents = await accounts.createAccount(userIdLogged, data);
 
   res.json(documents);
 };

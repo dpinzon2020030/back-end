@@ -1,7 +1,6 @@
 const users = require('../repository/users');
 
 getUsers = async (req, res, next) => {
-  console.log(`req.decodedToken:`,req.decodedToken)
   const documents = await users.getAllUsers();
 
   res.json(documents);
