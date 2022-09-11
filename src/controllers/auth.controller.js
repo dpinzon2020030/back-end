@@ -67,8 +67,6 @@ signup = async (req, res, next) => {
 
   try {
     newUser = await users.createUser(data);
-
-    // await newUser.save();
   } catch {
     const message = 'Something went wrong.';
     const error = new Error(message);
@@ -98,11 +96,50 @@ signup = async (req, res, next) => {
 
   res.status(201).json({
     success: true,
-    data: { userId: newUser.id, email: newUser.email, token: token },
+    data: { userId: newUser.id, email: newUser.email, token: token, _id: newUser._id },
   });
+};
+
+accessResource = async (req, res, next) => {
+  if (!req.headers.authorization) {
+    const message = 'Authorization was not provided.';
+    const error = new Error(message);
+
+    res.status(400).json({ success: false, message });
+
+    return next(error);
+  }
+
+  const token = req.headers.authorization.split(' ')[1];
+  //Authorization: 'Bearer TOKEN'
+
+  if (!token) {
+    const message = 'Token was not provided.';
+    const error = new Error(message);
+
+    res.status(400).json({ success: false, message });
+
+    return next(error);
+  }
+
+  //Decoding the token
+  try {
+    const decodedToken = jwt.verify(token, 'secretkeyappearshere');
+    res.status(200).json({ success: true, data: { userId: decodedToken.userId, email: decodedToken.email } });
+  } catch (err) {
+    console.error(err);
+
+    const message = 'Error on decoding the token';
+    const error = new Error(message);
+
+    res.status(400).json({ success: false, message });
+
+    return next(error);
+  }
 };
 
 module.exports = {
   login,
   signup,
+  accessResource,
 };
