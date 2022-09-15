@@ -67,26 +67,48 @@ const getAllTransactions = async (id) => {
 const createTransaction = async (data) => {
   try {
     const accountId = data.accountId;
-    const account = await getAccount(accountId);
-    let { totalCredit, totalDebit } = account;
+    const documentAccount = await getAccount(accountId);
+
+    let resultTransaction = { ok: true, message: '' };
+    const accountAvailableBalance  = documentAccount.availableBalance;
+
+    if (data.type === 'debit' && data.debit > accountAvailableBalance) {
+      resultTransaction.ok = false;
+      resultTransaction.message = `Monto insuficiente para hacer el debito. Monto disponible: ${accountAvailableBalance}`;
+      return resultTransaction;
+    }
+
+    const documentDailyRunningTotal = await getDailyRunningTotal(accountId);
+
+    let accountTotalCredit = documentAccount.totalCredit;
+    let accountTotalDebit = documentAccount.totalDebit;
+    let dailyRunningTotalCredit = documentDailyRunningTotal.totalCredit;
+    let dailyRunningTotalDebit = documentDailyRunningTotal.totalDebit;
 
     const database = Connection.database;
     const collection = database.collection(collectionName);
 
     const { credit, debit } = data;
-    totalCredit += credit;
-    totalDebit += debit;
-    const availableBalance = totalCredit - totalDebit;
+    accountTotalCredit += credit;
+    accountTotalDebit += debit;
+    dailyRunningTotalCredit += credit;
+    dailyRunningTotalDebit += debit;
+
+    const availableBalance = accountTotalCredit - accountTotalDebit;
 
     const newData = { ...data, createdAt: new Date(), balance: availableBalance };
 
     const result = await collection.insertOne(newData);
 
-    const dataAccount = { availableBalance, totalCredit, totalDebit };
+    const dataAccount = { availableBalance, totalCredit: accountTotalCredit, totalDebit: accountTotalDebit };
+    const dataDailyRunningTotal = { totalCredit: dailyRunningTotalCredit, totalDebit: dailyRunningTotalDebit };
 
     await updateAccount(accountId, dataAccount);
+    await updateDailyRunningTotal(documentDailyRunningTotal._id, dataDailyRunningTotal);
 
-    return { ...newData, _id: result.insertedId };
+    resultTransaction = { ...resultTransaction, ...newData, _id: result.insertedId };
+
+    return resultTransaction;
   } catch (err) {
     console.error(err);
   }
@@ -167,7 +189,14 @@ const getAccountsByOwnerId = async (ownerId) => {
 
 const createDailyRunningTotal = async (accountId, dateTransaction) => {
   try {
-    const newDocument = { accountId, dateTransaction,totalCredit: 0, totalDebit: 0, dailyDebitLimit: process.env.DAILY_DEBIT_LIMIT, createdAt: new Date() };
+    const newDocument = {
+      accountId,
+      dateTransaction,
+      totalCredit: 0,
+      totalDebit: 0,
+      dailyDebitLimit: process.env.DAILY_DEBIT_LIMIT,
+      createdAt: new Date(),
+    };
 
     const database = Connection.database;
     const collection = database.collection(collectionNameDailyRunningTotal);
@@ -180,22 +209,64 @@ const createDailyRunningTotal = async (accountId, dateTransaction) => {
   }
 };
 
-const validateDebit = async (id, amount) => {
+const getDailyRunningTotal = async (accountId) => {
   try {
     const database = Connection.database;
     const collection = database.collection(collectionNameDailyRunningTotal);
     const date = new Date();
 
     const dateTransaction = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-    const query = { accountId: id, dateTransaction };
+    const query = { accountId, dateTransaction };
 
     let document = await collection.findOne(query, optionsDailyRunningTotal);
 
     if (!document) {
-      document = await createDailyRunningTotal(id, dateTransaction);
+      document = await createDailyRunningTotal(accountId, dateTransaction);
     }
 
     return document;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const updateDailyRunningTotal = async (id, data) => {
+  try {
+    const database = Connection.database;
+    const collection = database.collection(collectionNameDailyRunningTotal);
+
+    const query = { _id: ObjectId(id) };
+    const optionsUpdate = { upsert: true };
+
+    const updateDoc = {
+      $set: {
+        ...data,
+      },
+    };
+    const result = await collection.updateOne(query, updateDoc, optionsUpdate);
+    const message = `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`;
+
+    return { modifiedCount: result.modifiedCount, matchedCount: result.matchedCount, document: { id, data }, message };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const validateDebit = async (accountId, amount) => {
+  try {
+    let documentDailyRunningTotal = await getDailyRunningTotal(accountId);
+
+    const result = {
+      ok: false,
+    };
+
+    if (documentDailyRunningTotal) {
+      if (amount <= documentDailyRunningTotal.dailyDebitLimit - documentDailyRunningTotal.totalDebit) {
+        result.ok = true;
+      }
+    }
+
+    return result;
   } catch (err) {
     console.error(err);
   }

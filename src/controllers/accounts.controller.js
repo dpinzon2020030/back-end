@@ -1,5 +1,6 @@
 const accounts = require('../repository/accounts');
 const bankingTransactions = require('../repository/bankingTransactions');
+const users = require('../repository/users');
 
 getAccounts = async (req, res, next) => {
   const documents = await accounts.getAllAccounts();
@@ -10,7 +11,6 @@ getAccounts = async (req, res, next) => {
 createAccount = async (req, res, next) => {
   const userTypeLogged = req.decodedToken.userType;
   const userIdLogged = req.decodedToken.userId;
-  console.log(`req.decodedToken`,req.decodedToken)
 
   if (userTypeLogged !== 'admin') {
     const message = 'User is not admin.';
@@ -65,6 +65,35 @@ getAccountByCode = async (req, res, next) => {
   res.json(document);
 };
 
+validateAccount = async (req, res, next) => {
+  const code = req.params.code;
+  const dpi = req.query.dpi;
+
+  let result = {
+    ok: false,
+    message: '',
+  };
+
+  if (dpi) {
+    const account = await accounts.getAccountByCode(code);
+
+    if (account) {
+      const user = await users.getUser(account.owner._id);
+
+      if (user.dpi === dpi) {
+        result.ok = true;
+        result = { ...result, ownerName: account.owner.name, ownerDpi: user.dpi, accountName: account.name, accountId: account._id };
+      } else {
+        result.message = `DPI value does not match.`
+      }
+    }
+  } else {
+    result.message = 'invalid DPI.'
+  }
+
+  res.json(result);
+};
+
 module.exports = {
   getAccounts,
   createAccount,
@@ -73,4 +102,5 @@ module.exports = {
   deleteAccount,
   getAccountsByOwnerId,
   getAccountByCode,
+  validateAccount,
 };

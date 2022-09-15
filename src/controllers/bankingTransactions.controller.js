@@ -25,17 +25,7 @@ validateDebit = async (req, res, next) => {
   const id = req.params.id;
   const amount = req.query.amount;
 
-  const document = await bankingTransactions.validateDebit(id, amount);
-
-  const result = {
-    ok: false,
-  };
-
-  if (document) {
-    if (amount <= document.dailyDebitLimit - document.totalDebit) {
-      result.ok = true;
-    }
-  }
+  const result = await bankingTransactions.validateDebit(id, amount);
 
   res.json(result);
 };
