@@ -432,7 +432,7 @@ const validateAccountByCodeAndDpi = async (code, dpi) => {
   const account = await getAccountByCode(code);
 
   if (!account) {
-    result.message = 'Account not exists.';
+    result.message = `Account not exists with this code: ${code}`;
     return result;
   }
 

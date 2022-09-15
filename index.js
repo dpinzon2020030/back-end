@@ -9,6 +9,7 @@ const authValidateAccessResource = require('./src/middlewares/auth.middleware');
 const authRoutes = require('./src/routes/auth.routes');
 const usersRoutes = require('./src/routes/users.routes');
 const accountsRoutes = require('./src/routes/accounts.routes');
+const favoritesRoutes = require('./src/routes/favorites.routes');
 const bankingTransactionsRoutes = require('./src/routes/bankingTransactions.routes');
 
 const path = require('path');
@@ -32,6 +33,7 @@ Connection.open().then(() => {
     .use('/api', authRoutes)
     .use('/api', authValidateAccessResource, usersRoutes)
     .use('/api', authValidateAccessResource, accountsRoutes)
+    .use('/api', authValidateAccessResource, favoritesRoutes)
     .use('/api', authValidateAccessResource, bankingTransactionsRoutes)
     .listen(PORT, () => console.log(`Listening on ${PORT}`));
 });

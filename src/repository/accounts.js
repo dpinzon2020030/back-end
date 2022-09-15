@@ -38,7 +38,7 @@ const getAllAccounts = async () => {
 const createAccount = async (userId, data) => {
   try {
     const ownerId = data.owner._id;
-    const code = await getAccountCode();
+    const code = await generateAccountCode();
 
     const startingAmount = data.startingAmount;
 
@@ -79,7 +79,7 @@ const deleteAccount = async (id) => {
   }
 };
 
-const getAccountCode = async () => {
+const generateAccountCode = async () => {
   try {
     const database = Connection.database;
 

@@ -60,10 +60,30 @@ deleteUser = async (req, res, next) => {
   res.json(result);
 };
 
+createUserAdmin = async (req, res, next) => {
+  const data = req.body;
+
+  if (!data.dpi) {
+    const message = 'DPI Invalid.';
+    const error = new Error(message);
+
+    res.status(400).json({
+      success: false,
+      message,
+    });
+    return next(error);
+  }
+
+  const documents = await users.createUser(data);
+
+  res.json(documents);
+};
+
 module.exports = {
   getUsers,
   createUser,
   getUser,
   updateUser,
   deleteUser,
+  createUserAdmin,
 };
