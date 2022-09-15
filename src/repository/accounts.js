@@ -79,21 +79,6 @@ const deleteAccount = async (id) => {
   }
 };
 
-const getAccountByCode = async (code) => {
-  try {
-    const database = Connection.database;
-    const collection = database.collection(collectionName);
-
-    const query = { code: parseInt(code) };
-
-    const document = await collection.findOne(query, options);
-
-    return document;
-  } catch (err) {
-    console.error(err);
-  }
-};
-
 const getAccountCode = async () => {
   try {
     const database = Connection.database;
@@ -139,5 +124,4 @@ module.exports = {
   getAllAccounts,
   createAccount,
   deleteAccount,
-  getAccountByCode,
 };

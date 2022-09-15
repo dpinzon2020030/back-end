@@ -1,6 +1,7 @@
 const ObjectId = require('mongodb').ObjectId;
 
 const { Connection } = require('../db/Connection');
+const users = require('./users');
 
 const collectionName = 'bankingTransactions';
 const collectionNameAccount = 'accounts';
@@ -66,11 +67,18 @@ const getAllTransactions = async (id) => {
 
 const createTransaction = async (data) => {
   try {
+    let resultTransaction = { ok: true, message: '' };
+
     const accountId = data.accountId;
     const documentAccount = await getAccount(accountId);
 
-    let resultTransaction = { ok: true, message: '' };
-    const accountAvailableBalance  = documentAccount.availableBalance;
+    if (!documentAccount) {
+      resultTransaction.ok = false;
+      resultTransaction.message = 'Account not exists.';
+      return resultTransaction;
+    }
+
+    const accountAvailableBalance = documentAccount.availableBalance;
 
     if (data.type === 'debit' && data.debit > accountAvailableBalance) {
       resultTransaction.ok = false;
@@ -79,6 +87,14 @@ const createTransaction = async (data) => {
     }
 
     const documentDailyRunningTotal = await getDailyRunningTotal(accountId);
+
+    if (data.type === 'debit' && data.debit > documentDailyRunningTotal.dailyDebitLimit - documentDailyRunningTotal.totalDebit) {
+      resultTransaction.ok = false;
+      resultTransaction.message = `Monto excede al limite diario. Monto diario disponible: ${
+        documentDailyRunningTotal.dailyDebitLimit - documentDailyRunningTotal.totalDebit
+      }`;
+      return resultTransaction;
+    }
 
     let accountTotalCredit = documentAccount.totalCredit;
     let accountTotalDebit = documentAccount.totalDebit;
@@ -272,6 +288,131 @@ const validateDebit = async (accountId, amount) => {
   }
 };
 
+const transfer = async (data) => {
+  try {
+    let result = { ok: false, message: '' };
+
+    const { originAccount, destinationAccount } = data;
+
+    if (!data.amount) {
+      result.message = 'Amount invalid.';
+      return result;
+    }
+
+    if (!originAccount) {
+      result.message = 'Origin Account invalid.';
+      return result;
+    }
+
+    if (!destinationAccount) {
+      result.message = 'Destination Account invalid.';
+      return result;
+    }
+
+    if (!originAccount._id) {
+      result.message = 'Origin Account Id invalid.';
+      return result;
+    }
+
+    if (!destinationAccount.code) {
+      result.message = 'Destination Account Code invalid.';
+      return result;
+    }
+
+    if (!destinationAccount.dpi) {
+      result.message = 'Destination Account DPI invalid.';
+      return result;
+    }
+
+    const accountId = originAccount._id;
+    const amount = data.amount;
+    const documentOriginAccount = await getAccount(accountId);
+
+    if (!documentOriginAccount) {
+      result.message = 'Origin Account not exists.';
+      return result;
+    }
+
+    const documentDestinationAccount = await validateAccountByCodeAndDpi(destinationAccount.code, destinationAccount.dpi);
+
+    if (!documentDestinationAccount.ok) {
+      result.message = documentDestinationAccount.message;
+      return result;
+    }
+
+    const accountAvailableBalance = documentOriginAccount.availableBalance;
+
+    if (amount > accountAvailableBalance) {
+      result.message = `Monto insuficiente para hacer el debito. Monto disponible: ${accountAvailableBalance}`;
+      return result;
+    }
+
+    const documentDailyRunningTotal = await getDailyRunningTotal(accountId);
+
+    if (amount > documentDailyRunningTotal.dailyDebitLimit - documentDailyRunningTotal.totalDebit) {
+      result.message = `Monto excede al limite diario. Monto diario disponible: ${
+        documentDailyRunningTotal.dailyDebitLimit - documentDailyRunningTotal.totalDebit
+      }`;
+      return result;
+    }
+
+    return result;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const getAccountByCode = async (code) => {
+  try {
+    const database = Connection.database;
+    const collection = database.collection(collectionNameAccount);
+
+    const query = { code: parseInt(code) };
+
+    const document = await collection.findOne(query, optionsAccount);
+
+    return document;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const validateAccountByCodeAndDpi = async (code, dpi) => {
+  let result = {
+    ok: false,
+    message: '',
+  };
+
+  if (!dpi) {
+    result.message = 'invalid DPI.';
+    return result;
+  }
+
+  const account = await getAccountByCode(code);
+
+  if (!account) {
+    result.message = 'Account not exists.';
+    return result;
+  }
+
+  const user = await users.getUser(account.owner._id);
+
+  if (!user) {
+    result.message = 'User not exists.';
+    return result;
+  }
+
+  if (user.dpi !== dpi) {
+    result.message = `DPI value does not match.`;
+    return result;
+  }
+
+  result.ok = true;
+  result = { ...result, ownerName: account.owner.name, ownerDpi: user.dpi, accountName: account.name, accountId: account._id };
+
+  return result;
+};
+
 module.exports = {
   getTransaction,
   getAllTransactions,
@@ -281,4 +422,7 @@ module.exports = {
   updateAccount,
   getAccountsByOwnerId,
   validateDebit,
+  getAccountByCode,
+  validateAccountByCodeAndDpi,
+  transfer,
 };

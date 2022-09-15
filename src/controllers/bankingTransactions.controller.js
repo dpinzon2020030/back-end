@@ -30,9 +30,17 @@ validateDebit = async (req, res, next) => {
   res.json(result);
 };
 
+transfer = async (req, res, next) => {
+  const data = req.body;
+  const result = await bankingTransactions.transfer(data);
+
+  res.json(result);
+};
+
 module.exports = {
   getTransactions,
   createTransaction,
   getTransaction,
   validateDebit,
+  transfer,
 };

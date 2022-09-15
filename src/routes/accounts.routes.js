@@ -7,7 +7,7 @@ router.post('/accounts', accountsController.createAccount);
 router.get('/accounts/:id', accountsController.getAccount);
 router.patch('/accounts/:id', accountsController.updateAccount);
 router.delete('/accounts/:id', accountsController.deleteAccount);
-router.get('/accounts/validate/:code', accountsController.validateAccount);
+router.get('/accounts/validate/:code', accountsController.validateAccountByCodeAndDpi);
 router.get('/accounts-by-owner/:id', accountsController.getAccountsByOwnerId);
 router.get('/account-by-code/:code', accountsController.getAccountByCode);
 

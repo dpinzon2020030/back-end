@@ -1,6 +1,5 @@
 const accounts = require('../repository/accounts');
 const bankingTransactions = require('../repository/bankingTransactions');
-const users = require('../repository/users');
 
 getAccounts = async (req, res, next) => {
   const documents = await accounts.getAllAccounts();
@@ -65,31 +64,11 @@ getAccountByCode = async (req, res, next) => {
   res.json(document);
 };
 
-validateAccount = async (req, res, next) => {
+validateAccountByCodeAndDpi = async (req, res, next) => {
   const code = req.params.code;
   const dpi = req.query.dpi;
 
-  let result = {
-    ok: false,
-    message: '',
-  };
-
-  if (dpi) {
-    const account = await accounts.getAccountByCode(code);
-
-    if (account) {
-      const user = await users.getUser(account.owner._id);
-
-      if (user.dpi === dpi) {
-        result.ok = true;
-        result = { ...result, ownerName: account.owner.name, ownerDpi: user.dpi, accountName: account.name, accountId: account._id };
-      } else {
-        result.message = `DPI value does not match.`
-      }
-    }
-  } else {
-    result.message = 'invalid DPI.'
-  }
+  const result = await bankingTransactions.validateAccountByCodeAndDpi(code, dpi);
 
   res.json(result);
 };
@@ -102,5 +81,5 @@ module.exports = {
   deleteAccount,
   getAccountsByOwnerId,
   getAccountByCode,
-  validateAccount,
+  validateAccountByCodeAndDpi,
 };
