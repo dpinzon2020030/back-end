@@ -9,9 +9,9 @@ getTransactions = async (req, res, next) => {
 
 createTransaction = async (req, res, next) => {
   const data = req.body;
-  const documents = await bankingTransactions.createTransaction(data);
+  const document = await bankingTransactions.createTransaction(data);
 
-  res.json(documents);
+  res.json(document);
 };
 
 getTransaction = async (req, res, next) => {

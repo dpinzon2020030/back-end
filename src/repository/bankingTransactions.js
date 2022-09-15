@@ -74,7 +74,7 @@ const createTransaction = async (data) => {
 
     if (!documentAccount) {
       resultTransaction.ok = false;
-      resultTransaction.message = 'Account not exists.';
+      resultTransaction.message = `Account not exists. ${accountId}`;
       return resultTransaction;
     }
 
@@ -151,16 +151,16 @@ const startingAmount = async (userId, accountId, amount) => {
   await createTransaction(data);
 };
 
-const getAccount = async (id) => {
+const getAccount = async (accountId) => {
   try {
     const database = Connection.database;
     const collection = database.collection(collectionNameAccount);
 
-    const query = { _id: ObjectId(id) };
+    const query = { _id: ObjectId(accountId) };
 
     const document = await collection.findOne(query, optionsAccount);
 
-    return document;
+    return { ...document, accountId };
   } catch (err) {
     console.error(err);
   }
@@ -291,11 +291,20 @@ const validateDebit = async (accountId, amount) => {
 const transfer = async (data) => {
   try {
     let result = { ok: false, message: '' };
-
     const { originAccount, destinationAccount } = data;
+
+    if (!data.userId) {
+      result.message = 'userId invalid.';
+      return result;
+    }
 
     if (!data.amount) {
       result.message = 'Amount invalid.';
+      return result;
+    }
+
+    if (!data.description) {
+      result.message = 'Description invalid.';
       return result;
     }
 
@@ -356,6 +365,39 @@ const transfer = async (data) => {
       return result;
     }
 
+    const dataDebit = {
+      userId: data.userId,
+      accountId: documentOriginAccount.accountId,
+      date: new Date(),
+      type: 'debit',
+      credit: 0,
+      debit: amount,
+      description: `${data.description} - DEBIT`,
+    };
+    const documentDebit = await createTransaction(dataDebit);
+
+    if (!documentDebit.ok) {
+      result.message = documentDebit.message;
+      return result;
+    }
+
+    const dataCredit = {
+      userId: data.userId,
+      accountId: documentDestinationAccount.accountId,
+      date: new Date(),
+      type: 'credit',
+      credit: amount,
+      debit: 0,
+      description: `${data.description} - CREDIT`,
+    };
+    console.log(`dataCredit`, dataCredit);
+    const documentCredit = await createTransaction(dataCredit);
+
+    if (documentCredit.ok) {
+      result.ok = true;
+      result = { ...result, originTransactionId: documentDebit._id, destinationTransactionId: documentCredit._id };
+    }
+
     return result;
   } catch (err) {
     console.error(err);
@@ -398,7 +440,7 @@ const validateAccountByCodeAndDpi = async (code, dpi) => {
   const user = await users.getUser(account.owner._id);
 
   if (!user) {
-    result.message = 'User not exists.';
+    result.message = `User not exists. ${account.owner._id}`;
     return result;
   }
 
@@ -407,8 +449,9 @@ const validateAccountByCodeAndDpi = async (code, dpi) => {
     return result;
   }
 
+  const myObjectId = ObjectId(account._id);
   result.ok = true;
-  result = { ...result, ownerName: account.owner.name, ownerDpi: user.dpi, accountName: account.name, accountId: account._id };
+  result = { ...result, ownerName: account.owner.name, ownerDpi: user.dpi, accountName: account.name, accountId: myObjectId.toString() };
 
   return result;
 };
