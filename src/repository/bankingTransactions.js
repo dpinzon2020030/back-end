@@ -390,7 +390,6 @@ const transfer = async (data) => {
       debit: 0,
       description: `${data.description} - CREDIT`,
     };
-    console.log(`dataCredit`, dataCredit);
     const documentCredit = await createTransaction(dataCredit);
 
     if (documentCredit.ok) {
@@ -449,9 +448,14 @@ const validateAccountByCodeAndDpi = async (code, dpi) => {
     return result;
   }
 
-  const myObjectId = ObjectId(account._id);
   result.ok = true;
-  result = { ...result, ownerName: account.owner.name, ownerDpi: user.dpi, accountName: account.name, accountId: myObjectId.toString() };
+  result = {
+    ...result,
+    ownerName: account.owner.name,
+    ownerDpi: user.dpi,
+    accountName: account.name,
+    accountId: ObjectId(account._id).toString(),
+  };
 
   return result;
 };
