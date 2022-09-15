@@ -94,21 +94,6 @@ const getAccountByCode = async (code) => {
   }
 };
 
-const getAccountsByOwnerId = async (ownerId) => {
-  try {
-    const database = Connection.database;
-    const collection = database.collection(collectionName);
-
-    const query = { ownerId: ownerId };
-
-    const document = await collection.find(query, options).toArray();
-
-    return document;
-  } catch (err) {
-    console.error(err);
-  }
-};
-
 const getAccountCode = async () => {
   try {
     const database = Connection.database;
@@ -155,5 +140,4 @@ module.exports = {
   createAccount,
   deleteAccount,
   getAccountByCode,
-  getAccountsByOwnerId,
 };

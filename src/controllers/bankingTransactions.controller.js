@@ -21,9 +21,28 @@ getTransaction = async (req, res, next) => {
   res.json(document);
 };
 
+validateDebit = async (req, res, next) => {
+  const id = req.params.id;
+  const amount = req.query.amount;
+
+  const document = await bankingTransactions.validateDebit(id, amount);
+
+  const result = {
+    ok: false,
+  };
+
+  if (document) {
+    if (amount <= document.dailyDebitLimit - document.totalDebit) {
+      result.ok = true;
+    }
+  }
+
+  res.json(result);
+};
 
 module.exports = {
   getTransactions,
   createTransaction,
   getTransaction,
+  validateDebit,
 };

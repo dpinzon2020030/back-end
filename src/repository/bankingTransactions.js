@@ -4,6 +4,8 @@ const { Connection } = require('../db/Connection');
 
 const collectionName = 'bankingTransactions';
 const collectionNameAccount = 'accounts';
+const collectionNameDailyRunningTotal = 'dailyRunningTotal';
+
 const options = {
   sort: { name: 1 },
   projection: {
@@ -34,6 +36,17 @@ const optionsAccount = {
     totalCredit: 1,
     totalDebit: 1,
     createdBy: 1,
+  },
+};
+const optionsDailyRunningTotal = {
+  sort: { name: 1 },
+  projection: {
+    _id: 1,
+    accountId: 1,
+    dateTransaction: 1,
+    totalCredit: 1,
+    totalDebit: 1,
+    dailyDebitLimit: 1,
   },
 };
 
@@ -137,4 +150,64 @@ const updateAccount = async (id, data) => {
   }
 };
 
-module.exports = { getTransaction, getAllTransactions, createTransaction, startingAmount, getAccount, updateAccount };
+const getAccountsByOwnerId = async (ownerId) => {
+  try {
+    const database = Connection.database;
+    const collection = database.collection(collectionNameAccount);
+
+    const query = { 'owner._id': ownerId };
+
+    const documents = await collection.find(query, optionsAccount).toArray();
+
+    return documents;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const createDailyRunningTotal = async (accountId, dateTransaction) => {
+  try {
+    const newDocument = { accountId, dateTransaction,totalCredit: 0, totalDebit: 0, dailyDebitLimit: process.env.DAILY_DEBIT_LIMIT, createdAt: new Date() };
+
+    const database = Connection.database;
+    const collection = database.collection(collectionNameDailyRunningTotal);
+
+    const result = await collection.insertOne(newDocument);
+
+    return { ...newDocument, _id: result.insertedId };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const validateDebit = async (id, amount) => {
+  try {
+    const database = Connection.database;
+    const collection = database.collection(collectionNameDailyRunningTotal);
+    const date = new Date();
+
+    const dateTransaction = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    const query = { accountId: id, dateTransaction };
+
+    let document = await collection.findOne(query, optionsDailyRunningTotal);
+
+    if (!document) {
+      document = await createDailyRunningTotal(id, dateTransaction);
+    }
+
+    return document;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+module.exports = {
+  getTransaction,
+  getAllTransactions,
+  createTransaction,
+  startingAmount,
+  getAccount,
+  updateAccount,
+  getAccountsByOwnerId,
+  validateDebit,
+};

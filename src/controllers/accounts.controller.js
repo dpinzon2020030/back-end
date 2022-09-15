@@ -53,9 +53,9 @@ deleteAccount = async (req, res, next) => {
 
 getAccountsByOwnerId = async (req, res, next) => {
   const id = req.params.id;
-  const document = await accounts.getAccountByOwnerId(id);
+  const documents = await bankingTransactions.getAccountsByOwnerId(id);
 
-  res.json(document);
+  res.json(documents);
 };
 
 getAccountByCode = async (req, res, next) => {
