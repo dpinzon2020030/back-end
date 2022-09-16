@@ -52,6 +52,10 @@ login = async (req, res, next) => {
     data: {
       userId: existingUser._id,
       email: existingUser.email,
+      name: existingUser.name,
+      nickname: existingUser.nickname,
+      address: existingUser.address,
+      phone: existingUser.phone,
       token: token,
     },
   });
