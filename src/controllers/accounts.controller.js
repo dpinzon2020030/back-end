@@ -59,7 +59,7 @@ getAccountsByOwnerId = async (req, res, next) => {
 
 getAccountByCode = async (req, res, next) => {
   const code = req.params.code;
-  const document = await accounts.getAccountByCode(code);
+  const document = await bankingTransactions.getAccountByCode(code);
 
   res.json(document);
 };

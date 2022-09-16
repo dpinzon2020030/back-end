@@ -8,7 +8,7 @@ router.get('/accounts/:id', accountsController.getAccount);
 router.patch('/accounts/:id', accountsController.updateAccount);
 router.delete('/accounts/:id', accountsController.deleteAccount);
 router.get('/accounts/validate/:code', accountsController.validateAccountByCodeAndDpi);
-router.get('/accounts-by-owner/:id', accountsController.getAccountsByOwnerId);
-router.get('/account-by-code/:code', accountsController.getAccountByCode);
+router.get('/accounts/by-owner/:id', accountsController.getAccountsByOwnerId);
+router.get('/accounts/by-code/:code', accountsController.getAccountByCode);
 
 module.exports = router;

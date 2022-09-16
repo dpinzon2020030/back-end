@@ -15,7 +15,7 @@ login = async (req, res, next) => {
   }
   if (!existingUser || existingUser.password !== password) {
     message = 'Wrong details please check at once';
-    const error = Error(message);
+    const error = Error(`Validate password. ${message}`);
 
     res.status(401).json({
       success: false,
