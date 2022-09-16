@@ -37,6 +37,9 @@ const optionsAccount = {
     totalCredit: 1,
     totalDebit: 1,
     createdBy: 1,
+    lastTransaction: 1,
+    lastCreditTransaction: 1,
+    lastDebitTransaction: 1,
   },
 };
 const optionsDailyRunningTotal = {
@@ -114,15 +117,24 @@ const createTransaction = async (data) => {
 
     const newData = { ...data, createdAt: new Date(), balance: availableBalance };
 
-    const result = await collection.insertOne(newData);
+    const resultInsert = await collection.insertOne(newData);
 
-    const dataAccount = { availableBalance, totalCredit: accountTotalCredit, totalDebit: accountTotalDebit };
+    const baseTransaction = { ...newData, _id: resultInsert.insertedId };
+
+    const dataAccount = {
+      availableBalance,
+      totalCredit: accountTotalCredit,
+      totalDebit: accountTotalDebit,
+      lastTransaction: baseTransaction,
+      ...(data.type === 'credit' ? { lastCreditTransaction: baseTransaction } : {}),
+      ...(data.type === 'debit' ? { lastDebitTransaction: baseTransaction } : {}),
+    };
     const dataDailyRunningTotal = { totalCredit: dailyRunningTotalCredit, totalDebit: dailyRunningTotalDebit };
 
     await updateAccount(accountId, dataAccount);
     await updateDailyRunningTotal(documentDailyRunningTotal._id, dataDailyRunningTotal);
 
-    resultTransaction = { ...resultTransaction, ...newData, _id: result.insertedId };
+    resultTransaction = { ...resultTransaction, ...baseTransaction };
 
     return resultTransaction;
   } catch (err) {

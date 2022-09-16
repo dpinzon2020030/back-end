@@ -18,6 +18,9 @@ const options = {
     totalCredit: 1,
     totalDebit: 1,
     createdBy: 1,
+    lastTransaction: 1,
+    lastCreditTransaction: 1,
+    lastDebitTransaction: 1,
   },
 };
 
