@@ -24,12 +24,25 @@ const getAllUsers = async () => {
 
 const createUser = async (data) => {
   try {
+    let result = { success: false, message: '' };
+
+    const email = data.email;
+    const documentUser = await getUserByEmail(email);
+
+    if (documentUser) {
+      result.message = `Email already exists. userId: ${documentUser._id} email: ${email}`;
+      return result;
+    }
+
     const database = Connection.database;
     const collection = database.collection(collectionName);
 
-    const result = await collection.insertOne(data);
+    const resultInsert = await collection.insertOne(data);
 
-    return { ...data, _id: result.insertedId };
+    result.success = true;
+    result = { ...result, ...data, _id: resultInsert.insertedId };
+
+    return result;
   } catch (err) {
     console.error(err);
   }
@@ -79,15 +92,18 @@ const deleteUser = async (id) => {
 
     const query = { _id: ObjectId(id) };
     let message = '';
+    let success = false;
 
     const result = await collection.deleteOne(query);
+
     if (result.deletedCount === 1) {
+      success = true;
       message = 'Successfully deleted one document.';
     } else {
       message = 'No documents matched the query. Deleted 0 documents.';
     }
 
-    return { message, id };
+    return { success, message, id };
   } catch (err) {
     console.error(err);
   }

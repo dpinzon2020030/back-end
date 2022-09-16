@@ -1,6 +1,19 @@
 const users = require('../repository/users');
 
 getUsers = async (req, res, next) => {
+  const userTypeLogged = req.decodedToken.userType;
+
+  if (userTypeLogged !== 'admin') {
+    const message = 'User is not admin.';
+    const error = new Error(message);
+
+    res.status(401).json({
+      success: false,
+      message,
+    });
+    return next(error);
+  }
+
   const documents = await users.getAllUsers();
 
   res.json(documents);
