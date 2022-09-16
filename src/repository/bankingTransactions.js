@@ -29,7 +29,6 @@ const optionsAccount = {
     _id: 1,
     name: 1,
     code: 1,
-    dpi: 1,
     owner: 1,
     startingAmount: 1,
     availableBalance: 1,
@@ -40,6 +39,9 @@ const optionsAccount = {
     lastTransaction: 1,
     lastCreditTransaction: 1,
     lastDebitTransaction: 1,
+    countCredits: 1,
+    countDebits: 1,
+    countTransactions: 1,
   },
 };
 const optionsDailyRunningTotal = {
@@ -101,6 +103,9 @@ const createTransaction = async (data) => {
 
     let accountTotalCredit = documentAccount.totalCredit;
     let accountTotalDebit = documentAccount.totalDebit;
+    let accountCountCredits = documentAccount.countCredits;
+    let accountCountDebits = documentAccount.countDebits;
+    let accountCountTransactions = documentAccount.countTransactions;
     let dailyRunningTotalCredit = documentDailyRunningTotal.totalCredit;
     let dailyRunningTotalDebit = documentDailyRunningTotal.totalDebit;
 
@@ -112,6 +117,22 @@ const createTransaction = async (data) => {
     accountTotalDebit += debit;
     dailyRunningTotalCredit += credit;
     dailyRunningTotalDebit += debit;
+
+    if (!accountCountTransactions) {
+      accountCountTransactions = 0;
+    }
+    if (!accountCountCredits) {
+      accountCountCredits = 0;
+    }
+    if (!accountCountDebits) {
+      accountCountDebits = 0;
+    }
+    accountCountTransactions++;
+    if (data.type === 'credit') {
+      accountCountCredits++;
+    } else {
+      accountCountDebits++;
+    }
 
     const availableBalance = accountTotalCredit - accountTotalDebit;
 
@@ -126,8 +147,11 @@ const createTransaction = async (data) => {
       totalCredit: accountTotalCredit,
       totalDebit: accountTotalDebit,
       lastTransaction: baseTransaction,
+      countTransactions: accountCountTransactions,
       ...(data.type === 'credit' ? { lastCreditTransaction: baseTransaction } : {}),
       ...(data.type === 'debit' ? { lastDebitTransaction: baseTransaction } : {}),
+      ...(data.type === 'credit' ? { countCredits: accountCountCredits } : {}),
+      ...(data.type === 'debit' ? { countDebits: accountCountDebits } : {}),
     };
     const dataDailyRunningTotal = { totalCredit: dailyRunningTotalCredit, totalDebit: dailyRunningTotalDebit };
 

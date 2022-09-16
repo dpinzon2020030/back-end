@@ -10,7 +10,6 @@ const options = {
     _id: 1,
     name: 1,
     code: 1,
-    dpi: 1,
     owner: 1,
     startingAmount: 1,
     availableBalance: 1,
@@ -21,6 +20,9 @@ const options = {
     lastTransaction: 1,
     lastCreditTransaction: 1,
     lastDebitTransaction: 1,
+    countCredits: 1,
+    countDebits: 1,
+    countTransactions: 1,
   },
 };
 
@@ -51,7 +53,18 @@ const createAccount = async (userId, data) => {
     const ownerId = data.owner._id;
     const code = await generateAccountCode();
 
-    const newDocument = { ...data, ownerId, code, availableBalance: 0, totalCredit: 0, totalDebit: 0, createdBy: userId };
+    const newDocument = {
+      ...data,
+      ownerId,
+      code,
+      availableBalance: 0,
+      totalCredit: 0,
+      totalDebit: 0,
+      countCredits: 0,
+      countDebits: 0,
+      countTransactions: 0,
+      createdBy: userId,
+    };
 
     const database = Connection.database;
     const collection = database.collection(collectionName);
