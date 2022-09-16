@@ -26,8 +26,13 @@ const createUser = async (data) => {
   try {
     let result = { success: false, message: '' };
 
-    const email = data.email;
+    const { email, monthlyIncome } = data;
     const documentUser = await getUserByEmail(email);
+
+    if (!monthlyIncome || monthlyIncome < process.env.MINIMUM_MONTHLY_INCOME) {
+      result.message = `Ingreso Mensual Invalido. El Minimo Ingreso Mensual valido es: ${process.env.MINIMUM_MONTHLY_INCOME}`;
+      return result;
+    }
 
     if (documentUser) {
       result.message = `Email already exists. userId: ${documentUser._id} email: ${email}`;

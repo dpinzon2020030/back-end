@@ -37,22 +37,30 @@ const getAllAccounts = async () => {
 
 const createAccount = async (userId, data) => {
   try {
+    let result = { success: false, message: '' };
+    const { startingAmount } = data;
+
+    if (!startingAmount || startingAmount < process.env.MINIMUM_OPENING_AMOUNT) {
+      result.message = `Monto de Apertura Invalido. El Minimo de Monto de Apertura valido es: ${process.env.MINIMUM_OPENING_AMOUNT}`;
+      return result;
+    }
+
     const ownerId = data.owner._id;
     const code = await generateAccountCode();
-
-    const startingAmount = data.startingAmount;
 
     const newDocument = { ...data, ownerId, code, availableBalance: 0, totalCredit: 0, totalDebit: 0, createdBy: userId };
 
     const database = Connection.database;
     const collection = database.collection(collectionName);
 
-    const result = await collection.insertOne(newDocument);
-    const accountId = ObjectId(result.insertedId).toString();
+    const resultInsert = await collection.insertOne(newDocument);
+    const accountId = ObjectId(resultInsert.insertedId).toString();
 
     await bankingTransactions.startingAmount(userId, accountId, startingAmount);
 
-    return { ...newDocument, _id: result.insertedId };
+    result.success = true;
+    result = { ...result, ...newDocument, _id: resultInsert.insertedId };
+    return result;
   } catch (err) {
     console.error(err);
   }
