@@ -89,15 +89,18 @@ const deleteAccount = async (id) => {
 
     const query = { _id: ObjectId(id) };
     let message = '';
+    let success = false;
 
     const result = await collection.deleteOne(query);
+
     if (result.deletedCount === 1) {
+      success = true;
       message = 'Successfully deleted one document.';
     } else {
       message = 'No documents matched the query. Deleted 0 documents.';
     }
 
-    return { message, id };
+    return { success, message, id };
   } catch (err) {
     console.error(err);
   }

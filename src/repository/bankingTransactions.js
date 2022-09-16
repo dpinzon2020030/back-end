@@ -21,6 +21,7 @@ const options = {
     debit: 1,
     createdAt: 1,
     balance: 1,
+    amount: 1,
   },
 };
 const optionsAccount = {
@@ -113,6 +114,7 @@ const createTransaction = async (data) => {
     const collection = database.collection(collectionName);
 
     const { credit, debit } = data;
+    let amount = 0;
     accountTotalCredit += credit;
     accountTotalDebit += debit;
     dailyRunningTotalCredit += credit;
@@ -129,14 +131,16 @@ const createTransaction = async (data) => {
     }
     accountCountTransactions++;
     if (data.type === 'credit') {
+      amount = credit;
       accountCountCredits++;
     } else {
+      amount = debit;
       accountCountDebits++;
     }
 
     const availableBalance = accountTotalCredit - accountTotalDebit;
 
-    const newData = { ...data, createdAt: new Date(), balance: availableBalance };
+    const newData = { ...data, createdAt: new Date(), balance: availableBalance, amount };
 
     const resultInsert = await collection.insertOne(newData);
 
@@ -183,7 +187,7 @@ const getTransaction = async (id) => {
 
 const startingAmount = async (userId, accountId, amount) => {
   const description = 'APERTURA DE CUENTA';
-  const data = { accountId, userId, description, credit: amount, debit: 0, date: new Date() };
+  const data = { accountId, userId, description, credit: amount, debit: 0, date: new Date(), type: 'credit' };
   await createTransaction(data);
 };
 
