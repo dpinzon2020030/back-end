@@ -10,14 +10,14 @@ login = async (req, res, next) => {
   try {
     existingUser = await users.getUserByEmail(email);
   } catch {
-    const error = new Error('Error! Something went wrong.');
+    const error = new Error('Something went wrong on login.');
     return next(error);
   }
   if (!existingUser || existingUser.password !== password) {
     message = 'Wrong details please check at once';
     const error = Error(message);
 
-    res.status(404).json({
+    res.status(401).json({
       success: false,
       message,
     });
