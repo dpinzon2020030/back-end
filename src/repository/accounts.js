@@ -52,7 +52,7 @@ const createAccount = async (userId, data) => {
     }
 
     const ownerId = data.ownerId;
-    const documentUser = await users.getUser(ownerId);
+    const documentUser = await bankingTransactions.getUser(ownerId);
 
     if (!documentUser) {
       result.message = `Id. de Usuario invalido. ${ownerId}`;

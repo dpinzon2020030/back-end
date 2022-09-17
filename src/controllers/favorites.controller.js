@@ -7,12 +7,18 @@ getFavorites = async (req, res, next) => {
 };
 
 createFavorite = async (req, res, next) => {
+  let statusCode = 201;
+
   const userIdLogged = req.decodedToken.userId;
 
   const data = req.body;
   const result = await favorites.createFavorite(userIdLogged, data);
 
-  res.json(result);
+  if (!result.success) {
+    statusCode = 400;
+  }
+
+  res.status(statusCode).json(result);
 };
 
 getFavorite = async (req, res, next) => {

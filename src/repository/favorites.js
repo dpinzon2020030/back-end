@@ -12,6 +12,7 @@ const options = {
     accountCode: 1,
     accountDpi: 1,
     accountAlias: 1,
+    accountName: 1,
     createdBy: 1,
   },
 };
@@ -32,7 +33,7 @@ const getAllFavorites = async () => {
 
 const createFavorite = async (userId, data) => {
   try {
-    let result = { ok: false, message: '' };
+    let result = { success: false, message: '' };
 
     if (!data.accountAlias) {
       result.message = 'Alias invalid.';
@@ -51,7 +52,7 @@ const createFavorite = async (userId, data) => {
 
     const documentFavoriteAccount = await bankingTransactions.validateAccountByCodeAndDpi(data.accountCode, data.accountDpi);
 
-    if (!documentFavoriteAccount.ok) {
+    if (!documentFavoriteAccount.success) {
       result.message = documentFavoriteAccount.message;
       return result;
     }
@@ -63,15 +64,23 @@ const createFavorite = async (userId, data) => {
       return result;
     }
 
-    const newDocument = { ...data, accountCode: parseInt(data.accountCode), userId, createdBy: userId, createdAt: new Date() };
+    const newDocument = {
+      ...data,
+      accountCode: parseInt(data.accountCode),
+      userId,
+      createdBy: userId,
+      createdAt: new Date(),
+      accountName: documentFavoriteAccount.accountName,
+    };
 
     const database = Connection.database;
     const collection = database.collection(collectionName);
 
     const resultNewDocument = await collection.insertOne(newDocument);
 
-    result.ok = true;
+    result.success = true;
     result = { ...result, ...newDocument, _id: resultNewDocument.insertedId };
+
     return result;
   } catch (err) {
     console.error(err);
@@ -122,15 +131,17 @@ const deleteFavorite = async (id) => {
 
     const query = { _id: ObjectId(id) };
     let message = '';
+    let success = false;
 
     const result = await collection.deleteOne(query);
     if (result.deletedCount === 1) {
+      success = true;
       message = 'Successfully deleted one document.';
     } else {
       message = 'No documents matched the query. Deleted 0 documents.';
     }
 
-    return { message, id };
+    return { success, message, id };
   } catch (err) {
     console.error(err);
   }

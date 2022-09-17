@@ -1,4 +1,5 @@
 const users = require('../repository/users');
+const bankingTransactions = require('../repository/bankingTransactions');
 
 getUsers = async (req, res, next) => {
   const userTypeLogged = req.decodedToken.userType;
@@ -61,7 +62,7 @@ createUser = async (req, res, next) => {
 
 getUser = async (req, res, next) => {
   const id = req.params.id;
-  const document = await users.getUser(id);
+  const document = await bankingTransactions.getUser(id);
 
   res.json(document);
 };

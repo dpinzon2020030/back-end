@@ -5,6 +5,7 @@ const users = require('./users');
 
 const collectionName = 'bankingTransactions';
 const collectionNameAccount = 'accounts';
+const collectionNameUsers = 'users';
 const collectionNameDailyRunningTotal = 'dailyRunningTotal';
 
 const options = {
@@ -55,6 +56,10 @@ const optionsDailyRunningTotal = {
     totalDebit: 1,
     dailyDebitLimit: 1,
   },
+};
+const optionsUser = {
+  sort: { name: 1 },
+  projection: { _id: 1, name: 1, nickname: 1, dpi: 1, address: 1, phone: 1, email: 1, job: 1, monthlyIncome: 1, password: 1, userType: 1 },
 };
 
 const getAllTransactions = async (accountId, startDate, endDate) => {
@@ -417,7 +422,7 @@ const transfer = async (data) => {
 
     const documentDestinationAccount = await validateAccountByCodeAndDpi(destinationAccount.code, destinationAccount.dpi);
 
-    if (!documentDestinationAccount.ok) {
+    if (!documentDestinationAccount.success) {
       result.message = documentDestinationAccount.message;
       return result;
     }
@@ -445,7 +450,7 @@ const transfer = async (data) => {
       type: 'debit',
       credit: 0,
       debit: amount,
-      description: `${data.description} - DEBIT`,
+      description: `${data.description} - TRANSFER DEBIT`,
     };
     const documentDebit = await createTransaction(dataDebit);
 
@@ -461,7 +466,7 @@ const transfer = async (data) => {
       type: 'credit',
       credit: amount,
       debit: 0,
-      description: `${data.description} - CREDIT`,
+      description: `${data.description} - TRANSFER CREDIT`,
     };
     const documentCredit = await createTransaction(dataCredit);
 
@@ -493,7 +498,7 @@ const getAccountByCode = async (code) => {
 
 const validateAccountByCodeAndDpi = async (code, dpi) => {
   let result = {
-    ok: false,
+    success: false,
     message: '',
   };
 
@@ -509,19 +514,19 @@ const validateAccountByCodeAndDpi = async (code, dpi) => {
     return result;
   }
 
-  const user = await users.getUser(account.owner._id);
+  const user = await getUser(account.ownerId);
 
   if (!user) {
-    result.message = `User not exists. ${account.owner._id}`;
+    result.message = `User not exists. ${account.ownerId}`;
     return result;
   }
 
-  if (user.dpi !== dpi) {
+  if (parseInt(user.dpi) !== parseInt(dpi)) {
     result.message = `DPI value does not match.`;
     return result;
   }
 
-  result.ok = true;
+  result.success = true;
   result = {
     ...result,
     ownerName: account.owner.name,
@@ -532,6 +537,22 @@ const validateAccountByCodeAndDpi = async (code, dpi) => {
 
   return result;
 };
+
+const getUser = async (id) => {
+  try {
+    const database = Connection.database;
+    const collection = database.collection(collectionNameUsers);
+
+    const query = { _id: ObjectId(id) };
+
+    const document = await collection.findOne(query, optionsUser);
+
+    return document;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
 module.exports = {
   getTransaction,
@@ -545,5 +566,6 @@ module.exports = {
   getAccountByCode,
   validateAccountByCodeAndDpi,
   transfer,
-  deleteAccountsByOwnerId
+  deleteAccountsByOwnerId,
+  getUser
 };

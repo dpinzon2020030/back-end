@@ -54,21 +54,6 @@ const createUser = async (data) => {
   }
 };
 
-const getUser = async (id) => {
-  try {
-    const database = Connection.database;
-    const collection = database.collection(collectionName);
-
-    const query = { _id: ObjectId(id) };
-
-    const document = await collection.findOne(query, options);
-
-    return document;
-  } catch (err) {
-    console.error(err);
-  }
-};
-
 const updateUser = async (id, data) => {
   try {
     const database = Connection.database;
@@ -131,4 +116,4 @@ const getUserByEmail = async (email) => {
   }
 };
 
-module.exports = { getUser, getAllUsers, createUser, updateUser, deleteUser, getUserByEmail };
+module.exports = {  getAllUsers, createUser, updateUser, deleteUser, getUserByEmail };
