@@ -2,6 +2,7 @@ const ObjectId = require('mongodb').ObjectId;
 
 const { Connection } = require('../db/Connection');
 const bankingTransactions = require('./bankingTransactions');
+const users = require('./users');
 
 const collectionName = 'accounts';
 const options = {
@@ -50,11 +51,23 @@ const createAccount = async (userId, data) => {
       return result;
     }
 
-    const ownerId = data.owner._id;
+    const ownerId = data.ownerId;
+    const documentUser = await users.getUser(ownerId);
+
+    if (!documentUser) {
+      result.message = `Id. de Usuario invalido. ${ownerId}`;
+      return result;
+    }
+    console.log(documentUser)
+
     const code = await generateAccountCode();
 
     const newDocument = {
       ...data,
+      owner: {
+        _id: ownerId,
+        name: documentUser.name,
+      },
       ownerId,
       code,
       availableBalance: 0,

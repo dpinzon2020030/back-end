@@ -24,8 +24,13 @@ createAccount = async (req, res, next) => {
 
   const data = req.body;
   const documents = await accounts.createAccount(userIdLogged, data);
+  let statusCode = 201;
 
-  res.json(documents);
+  if (!documents.success) {
+    statusCode = 400;
+  }
+
+  res.status(statusCode).json(documents);
 };
 
 getAccount = async (req, res, next) => {

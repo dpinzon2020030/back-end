@@ -57,12 +57,20 @@ const optionsDailyRunningTotal = {
   },
 };
 
-const getAllTransactions = async (id) => {
+const getAllTransactions = async (accountId, startDate, endDate) => {
   try {
     const database = Connection.database;
     const collection = database.collection(collectionName);
 
-    const query = { accountId: id };
+    const baseStartDate = new Date(startDate);
+    const baseEndDate = new Date(endDate);
+
+    baseEndDate.setHours(23);
+    baseEndDate.setMinutes(59);
+    baseEndDate.setSeconds(59);
+
+    const query = { accountId: accountId, createdAt: { $gte: baseStartDate, $lt: baseEndDate } };
+
     const documents = await collection.find(query, options).toArray();
 
     return documents;

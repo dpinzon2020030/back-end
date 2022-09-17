@@ -1,8 +1,11 @@
 const bankingTransactions = require('../repository/bankingTransactions');
 
 getTransactions = async (req, res, next) => {
-  const id = req.params.id;
-  const documents = await bankingTransactions.getAllTransactions(id);
+  const accountId = req.params.id;
+  const startDate = req.query['start-date'];
+  const endDate = req.query['end-date'];
+
+  const documents = await bankingTransactions.getAllTransactions(accountId, startDate, endDate);
 
   res.json(documents);
 };
