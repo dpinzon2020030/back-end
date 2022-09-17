@@ -1,6 +1,7 @@
 const ObjectId = require('mongodb').ObjectId;
 
 const { Connection } = require('../db/Connection');
+const bankingTransactions = require('./bankingTransactions');
 
 const collectionName = 'users';
 const options = {
@@ -99,6 +100,7 @@ const deleteUser = async (id) => {
     let message = '';
     let success = false;
 
+    const resultDeleteAccounts = await bankingTransactions.deleteAccountsByOwnerId(id)
     const result = await collection.deleteOne(query);
 
     if (result.deletedCount === 1) {

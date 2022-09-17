@@ -20,13 +20,16 @@ getUsers = async (req, res, next) => {
 };
 
 createUser = async (req, res, next) => {
+  let statusCode = 201;
+
   const userTypeLogged = req.decodedToken.userType;
 
   if (userTypeLogged !== 'admin') {
     const message = 'User is not admin.';
     const error = new Error(message);
+    statusCode = 401;
 
-    res.status(401).json({
+    res.status(statusCode).json({
       success: false,
       message,
     });
@@ -38,8 +41,9 @@ createUser = async (req, res, next) => {
   if (!data.dpi) {
     const message = 'DPI Invalid.';
     const error = new Error(message);
+    statusCode = 400;
 
-    res.status(400).json({
+    res.status(statusCode).json({
       success: false,
       message,
     });
@@ -48,7 +52,11 @@ createUser = async (req, res, next) => {
 
   const documents = await users.createUser(data);
 
-  res.json(documents);
+  if (!documents.success) {
+    statusCode = 400;
+  }
+
+  res.status(statusCode).json(documents);
 };
 
 getUser = async (req, res, next) => {

@@ -251,6 +251,31 @@ const getAccountsByOwnerId = async (ownerId) => {
   }
 };
 
+const deleteAccountsByOwnerId = async (ownerId) => {
+  try {
+    let message = '';
+    let success = false;
+
+    const database = Connection.database;
+    const collection = database.collection(collectionNameAccount);
+
+    const query = { 'owner._id': ownerId };
+
+    const result = await collection.deleteMany(query);
+
+    if (result.deletedCount > 0) {
+      success = true;
+      message = 'Successfully deleted documents.';
+    } else {
+      message = 'No documents matched the query. Deleted 0 documents.';
+    }
+
+    return { success, message, ownerId };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 const createDailyRunningTotal = async (accountId, dateTransaction) => {
   try {
     const newDocument = {
@@ -520,4 +545,5 @@ module.exports = {
   getAccountByCode,
   validateAccountByCodeAndDpi,
   transfer,
+  deleteAccountsByOwnerId
 };
