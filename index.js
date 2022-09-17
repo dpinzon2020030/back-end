@@ -11,6 +11,7 @@ const usersRoutes = require('./src/routes/users.routes');
 const accountsRoutes = require('./src/routes/accounts.routes');
 const favoritesRoutes = require('./src/routes/favorites.routes');
 const bankingTransactionsRoutes = require('./src/routes/bankingTransactions.routes');
+const exchangeRatesRoutes = require('./src/routes/exchangeRates.routes');
 
 const path = require('path');
 const PORT = process.env.PORT || 5000;
@@ -35,6 +36,7 @@ Connection.open().then(() => {
     .use('/api', authValidateAccessResource, accountsRoutes)
     .use('/api', authValidateAccessResource, favoritesRoutes)
     .use('/api', authValidateAccessResource, bankingTransactionsRoutes)
+    .use('/api', authValidateAccessResource, exchangeRatesRoutes)
     .listen(PORT, () => console.log(`Listening on ${PORT}`));
 });
 
