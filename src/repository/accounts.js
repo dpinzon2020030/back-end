@@ -58,7 +58,6 @@ const createAccount = async (userId, data) => {
       result.message = `Id. de Usuario invalido. ${ownerId}`;
       return result;
     }
-    console.log(documentUser)
 
     const code = await generateAccountCode();
 

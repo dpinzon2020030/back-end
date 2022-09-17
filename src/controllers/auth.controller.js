@@ -50,14 +50,13 @@ login = async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: {
-      userId: existingUser._id,
-      email: existingUser.email,
       name: existingUser.name,
       nickname: existingUser.nickname,
       address: existingUser.address,
       phone: existingUser.phone,
-      phone: existingUser.phone,
-      userType: existingUser.userType,
+      dpi: existingUser.dpi,
+      job: existingUser.job,
+      monthlyIncome: existingUser.monthlyIncome,
       token: token,
     },
   });
