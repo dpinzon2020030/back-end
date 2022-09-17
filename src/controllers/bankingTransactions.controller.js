@@ -35,9 +35,15 @@ validateDebit = async (req, res, next) => {
 
 transfer = async (req, res, next) => {
   const data = req.body;
+
+  let statusCode = 201;
   const result = await bankingTransactions.transfer(data);
 
-  res.json(result);
+  if (!result.success) {
+    statusCode = 400;
+  }
+
+  res.status(statusCode).json(result);
 };
 
 module.exports = {

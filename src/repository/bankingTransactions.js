@@ -338,7 +338,7 @@ const validateDebit = async (accountId, amount) => {
 
 const transfer = async (data) => {
   try {
-    let result = { ok: false, message: '' };
+    let result = { success: false, message: '' };
     const { originAccount, destinationAccount } = data;
 
     if (!data.userId) {
@@ -441,7 +441,7 @@ const transfer = async (data) => {
     const documentCredit = await createTransaction(dataCredit);
 
     if (documentCredit.ok) {
-      result.ok = true;
+      result.success = true;
       result = { ...result, originTransactionId: documentDebit._id, destinationTransactionId: documentCredit._id };
     }
 
